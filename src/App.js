@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./App.css";
 
 function App() {
@@ -26,9 +26,29 @@ function App() {
     setForm({ type: "income", category: "", amount: "" });
   };
 
+  const handleDelete = (id) => {
+    setOperations(operations.filter((item) => item.id !== id));
+  };
+
+  const totals = useMemo(() => {
+    const income = operations
+      .filter((i) => i.type === "income")
+      .reduce((s, i) => s + Number(i.amount), 0);
+
+    const expense = operations
+      .filter((i) => i.type === "expense")
+      .reduce((s, i) => s + Number(i.amount), 0);
+
+    return { income, expense, balance: income - expense };
+  }, [operations]);
+
   return (
     <div className="container">
       <h1>Учёт финансов</h1>
+
+      <div>
+        Доход: {totals.income} | Расход: {totals.expense} | Баланс: {totals.balance}
+      </div>
 
       <form onSubmit={handleSubmit} className="form">
         <select name="type" value={form.type} onChange={handleChange}>
@@ -45,7 +65,8 @@ function App() {
       <ul>
         {operations.map((item) => (
           <li key={item.id}>
-            {item.category} ({item.type}) — {item.amount}
+            {item.category} — {item.amount}
+            <button onClick={() => handleDelete(item.id)}>X</button>
           </li>
         ))}
       </ul>
