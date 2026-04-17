@@ -1,13 +1,23 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import "./App.css";
 
+const STORAGE_KEY = "finance-operations";
+
 function App() {
-  const [operations, setOperations] = useState([]);
+  const [operations, setOperations] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [form, setForm] = useState({
     type: "income",
     category: "",
     amount: "",
   });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(operations));
+  }, [operations]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,12 +32,13 @@ function App() {
       ...form,
     };
 
-    setOperations([newOperation, ...operations]);
+    setOperations((prev) => [newOperation, ...prev]);
+
     setForm({ type: "income", category: "", amount: "" });
   };
 
   const handleDelete = (id) => {
-    setOperations(operations.filter((item) => item.id !== id));
+    setOperations((prev) => prev.filter((item) => item.id !== id));
   };
 
   const totals = useMemo(() => {
