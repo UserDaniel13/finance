@@ -27,13 +27,24 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!form.category.trim()) {
+      alert("Введите категорию");
+      return;
+    }
+
+    if (!form.amount || Number(form.amount) <= 0) {
+      alert("Введите корректную сумму");
+      return;
+    }
+
     const newOperation = {
       id: Date.now(),
-      ...form,
+      type: form.type,
+      category: form.category,
+      amount: Number(form.amount),
     };
 
     setOperations((prev) => [newOperation, ...prev]);
-
     setForm({ type: "income", category: "", amount: "" });
   };
 
@@ -50,15 +61,21 @@ function App() {
       .filter((i) => i.type === "expense")
       .reduce((s, i) => s + Number(i.amount), 0);
 
-    return { income, expense, balance: income - expense };
+    return {
+      income,
+      expense,
+      balance: income - expense,
+    };
   }, [operations]);
 
   return (
     <div className="container">
       <h1>Учёт финансов</h1>
 
-      <div>
-        Доход: {totals.income} | Расход: {totals.expense} | Баланс: {totals.balance}
+      <div className="totals">
+        <div>Доход: {totals.income.toFixed(2)} ₽</div>
+        <div>Расход: {totals.expense.toFixed(2)} ₽</div>
+        <div>Баланс: {totals.balance.toFixed(2)} ₽</div>
       </div>
 
       <form onSubmit={handleSubmit} className="form">
@@ -67,16 +84,37 @@ function App() {
           <option value="expense">Расход</option>
         </select>
 
-        <input name="category" value={form.category} onChange={handleChange} />
-        <input name="amount" value={form.amount} onChange={handleChange} />
+        <input
+          type="text"
+          name="category"
+          placeholder="Категория"
+          value={form.category}
+          onChange={handleChange}
+        />
 
-        <button>Добавить</button>
+        <input
+          type="number"
+          name="amount"
+          placeholder="Сумма"
+          value={form.amount}
+          onChange={handleChange}
+        />
+
+        <button type="submit">Добавить</button>
       </form>
 
-      <ul>
+      <ul className="list">
         {operations.map((item) => (
           <li key={item.id}>
-            {item.category} — {item.amount}
+            <span>
+              {item.category} ({item.type === "income" ? "Доход" : "Расход"})
+            </span>
+
+            <span className={item.type === "income" ? "income" : "expense"}>
+              {item.type === "income" ? "+" : "-"}
+              {item.amount.toFixed(2)} ₽
+            </span>
+
             <button onClick={() => handleDelete(item.id)}>X</button>
           </li>
         ))}
